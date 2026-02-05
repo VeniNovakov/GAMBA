@@ -1,11 +1,15 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	pgMigrate "github.com/golang-migrate/migrate/v4/database/postgres" // add this
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -63,6 +67,33 @@ func Connect(cfg *Config) (*gorm.DB, error) {
 
 func AutoMigrate(db *gorm.DB, models ...interface{}) error {
 	return db.AutoMigrate(models...)
+}
+
+func Migrate(db *gorm.DB, migrationsPath string) error {
+	sqlDB, err := db.DB()
+	if err != nil {
+		return err
+	}
+
+	driver, err := pgMigrate.WithInstance(sqlDB, &pgMigrate.Config{})
+	if err != nil {
+		return err
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://"+migrationsPath,
+		"postgres",
+		driver,
+	)
+	if err != nil {
+		return err
+	}
+
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return err
+	}
+
+	return nil
 }
 
 func Close() error {
