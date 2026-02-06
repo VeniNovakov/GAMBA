@@ -1,10 +1,11 @@
 package main
 
 import (
-	"ariga.io/atlas-provider-gorm/gormschema"
 	"gamba/models"
 	"io"
 	"os"
+
+	"ariga.io/atlas-provider-gorm/gormschema"
 )
 
 func main() {
@@ -16,6 +17,12 @@ func main() {
 		&models.Event{},
 		&models.EventOutcome{},
 		&models.RefreshToken{},
+		&models.Tournament{},
+		&models.TournamentParticipant{},
+		&models.Bet{},
+		&models.Ticket{},
+		&models.TicketMessage{},
+		&models.Transaction{},
 	)
 	if err != nil {
 		panic(err)
