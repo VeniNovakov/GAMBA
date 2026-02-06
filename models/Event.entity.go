@@ -1,9 +1,10 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type EventStatus string
@@ -57,18 +58,4 @@ func (Event) TableName() string {
 
 func (EventOutcome) TableName() string {
 	return "event_outcomes"
-}
-
-func (e *Event) BeforeCreate(tx *gorm.DB) error {
-	if e.ID == uuid.Nil {
-		e.ID = uuid.New()
-	}
-	return nil
-}
-
-func (o *EventOutcome) BeforeCreate(tx *gorm.DB) error {
-	if o.ID == uuid.Nil {
-		o.ID = uuid.New()
-	}
-	return nil
 }

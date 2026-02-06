@@ -1,9 +1,10 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type GameStatus string
@@ -31,9 +32,9 @@ type Game struct {
 	Description string         `json:"description" gorm:"type:text"`
 	Category    GameCategory   `json:"category" gorm:"type:varchar(30);not null"`
 	Status      GameStatus     `json:"status" gorm:"type:varchar(20);default:'active'"`
-	MinBet      float64        `json:"min_bet" gorm:"not null"`
-	MaxBet      float64        `json:"max_bet" gorm:"not null"`
-	HouseEdge   float64        `json:"house_edge" gorm:"default:0"`
+	MinBet      int64          `json:"min_bet" gorm:"not null"`
+	MaxBet      int64          `json:"max_bet" gorm:"not null"`
+	HouseEdge   int64          `json:"house_edge" gorm:"default:0"`
 	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
@@ -41,11 +42,4 @@ type Game struct {
 
 func (Game) TableName() string {
 	return "games"
-}
-
-func (g *Game) BeforeCreate(tx *gorm.DB) error {
-	if g.ID == uuid.Nil {
-		g.ID = uuid.New()
-	}
-	return nil
 }

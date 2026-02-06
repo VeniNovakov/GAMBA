@@ -50,17 +50,3 @@ func (Chat) TableName() string {
 func (Message) TableName() string {
 	return "messages"
 }
-
-func (c *Chat) BeforeCreate(tx *gorm.DB) error {
-	if c.ID == uuid.Nil {
-		c.ID = uuid.New()
-	}
-	return nil
-}
-
-func (m *Message) BeforeCreate(tx *gorm.DB) error {
-	if m.ID == uuid.Nil {
-		m.ID = uuid.New()
-	}
-	return nil
-}

@@ -23,8 +23,8 @@ type Tournament struct {
 	Description     string           `json:"description" gorm:"type:text"`
 	Status          TournamentStatus `json:"status" gorm:"type:varchar(20);default:'draft'"`
 	GameID          *uuid.UUID       `json:"game_id,omitempty" gorm:"type:uuid;index"`
-	EntryFee        float64          `json:"entry_fee" gorm:"default:0"`
-	PrizePool       float64          `json:"prize_pool" gorm:"default:0"`
+	EntryFee        int64            `json:"entry_fee" gorm:"default:0"`
+	PrizePool       int64            `json:"prize_pool" gorm:"default:0"`
 	MaxParticipants int              `json:"max_participants" gorm:"not null"`
 	StartsAt        time.Time        `json:"starts_at" gorm:"not null"`
 	EndsAt          time.Time        `json:"ends_at" gorm:"not null"`

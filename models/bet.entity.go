@@ -30,10 +30,10 @@ type Bet struct {
 	GameID    *uuid.UUID     `json:"game_id,omitempty" gorm:"type:uuid;index"`
 	EventID   *uuid.UUID     `json:"event_id,omitempty" gorm:"type:uuid;index"`
 	OutcomeID *uuid.UUID     `json:"outcome_id,omitempty" gorm:"type:uuid;index"`
-	Amount    float64        `json:"amount" gorm:"not null"`
+	Amount    int64          `json:"amount" gorm:"not null"`
 	Odds      float64        `json:"odds" gorm:"not null"`
 	Status    BetStatus      `json:"status" gorm:"type:varchar(20);default:'pending'"`
-	Payout    float64        `json:"payout" gorm:"default:0"`
+	Payout    int64          `json:"payout" gorm:"default:0"`
 	SettledAt *time.Time     `json:"settled_at,omitempty"`
 	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
