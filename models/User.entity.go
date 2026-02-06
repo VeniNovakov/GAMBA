@@ -16,7 +16,7 @@ const (
 
 type User struct {
 	ID           uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	Name         string         `json:"name" gorm:"uniqueIndex;not null"`
+	Username     string         `json:"username" gorm:"uniqueIndex;not null"`
 	PasswordHash string         `json:"-" gorm:"not null"`
 	Role         Role           `json:"role" gorm:"type:varchar(20);default:'player'"`
 	Balance      int64          `json:"balance" gorm:"default:0"`

@@ -38,14 +38,13 @@ type Tournament struct {
 }
 
 type TournamentParticipant struct {
-	ID           uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	TournamentID uuid.UUID      `json:"tournament_id" gorm:"type:uuid;not null;index"`
-	UserID       uuid.UUID      `json:"user_id" gorm:"type:uuid;not null;index"`
-	Score        float64        `json:"score" gorm:"default:0"`
-	Rank         int            `json:"rank" gorm:"default:0"`
-	PrizeWon     float64        `json:"prize_won" gorm:"default:0"`
-	JoinedAt     time.Time      `json:"joined_at" gorm:"autoCreateTime"`
-	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
+	ID           uuid.UUID `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	TournamentID uuid.UUID `json:"tournament_id" gorm:"type:uuid;not null;uniqueIndex:idx_tournament_user"`
+	UserID       uuid.UUID `json:"user_id" gorm:"type:uuid;not null;uniqueIndex:idx_tournament_user"`
+	Score        int64     `json:"score" gorm:"default:0"`
+	Rank         int       `json:"rank" gorm:"default:0"`
+	PrizeWon     int64     `json:"prize_won" gorm:"default:0"`
+	JoinedAt     time.Time `json:"joined_at" gorm:"autoCreateTime"`
 
 	//relationships
 	Tournament Tournament `json:"-" gorm:"foreignKey:TournamentID;constraint:OnDelete:CASCADE"`

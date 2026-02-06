@@ -44,12 +44,11 @@ type Ticket struct {
 }
 
 type TicketMessage struct {
-	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	TicketID  uuid.UUID      `json:"ticket_id" gorm:"type:uuid;not null;index"`
-	SenderID  uuid.UUID      `json:"sender_id" gorm:"type:uuid;not null;index"`
-	Content   string         `json:"content" gorm:"type:text;not null"`
-	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	TicketID  uuid.UUID `json:"ticket_id" gorm:"type:uuid;not null;index"`
+	SenderID  uuid.UUID `json:"sender_id" gorm:"type:uuid;not null;index"`
+	Content   string    `json:"content" gorm:"type:text;not null"`
+	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 
 	//relationships
 	Ticket Ticket `json:"-" gorm:"foreignKey:TicketID;constraint:OnDelete:CASCADE"`

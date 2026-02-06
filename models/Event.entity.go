@@ -45,7 +45,7 @@ type EventOutcome struct {
 	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	EventID   uuid.UUID      `json:"event_id" gorm:"type:uuid;not null;index"`
 	Name      string         `json:"name" gorm:"not null"`
-	Odds      float64        `json:"odds" gorm:"not null"`
+	Odds      int64          `json:"odds" gorm:"not null"`
 	IsWinner  *bool          `json:"is_winner,omitempty"`
 	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
