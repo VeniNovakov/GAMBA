@@ -13,6 +13,9 @@ func main() {
 		&models.Message{},
 		&models.Chat{},
 		&models.Game{},
+		&models.Event{},
+		&models.EventOutcome{},
+		&models.RefreshToken{},
 	)
 	if err != nil {
 		panic(err)
