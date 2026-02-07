@@ -34,7 +34,7 @@ type Transaction struct {
 	UserID        uuid.UUID         `json:"user_id" gorm:"type:uuid;not null;index"`
 	Type          TransactionType   `json:"type" gorm:"type:varchar(30);not null"`
 	Status        TransactionStatus `json:"status" gorm:"type:varchar(20);default:'pending'"`
-	Amount        int64             `json:"amount" gorm:"not null"` // positive = credit, negative = debit
+	Amount        float64           `json:"amount" gorm:"not null"` // positive = credit, negative = debit
 	ReferenceID   *uuid.UUID        `json:"reference_id,omitempty" gorm:"type:uuid;index"`
 	ReferenceType *string           `json:"reference_type,omitempty" gorm:"type:varchar(30)"`
 	Description   string            `json:"description" gorm:"type:text"`

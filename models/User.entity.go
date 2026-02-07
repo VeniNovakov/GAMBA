@@ -19,7 +19,7 @@ type User struct {
 	Username     string         `json:"username" gorm:"uniqueIndex;not null"`
 	PasswordHash string         `json:"-" gorm:"not null"`
 	Role         Role           `json:"role" gorm:"type:varchar(20);default:'player'"`
-	Balance      int64          `json:"balance" gorm:"default:0"`
+	Balance      float64        `json:"balance" gorm:"default:0"`
 	IsActive     bool           `json:"is_active" gorm:"default:true"`
 	IsRestricted bool           `json:"is_restricted" gorm:"default:false"`
 	CreatedAt    time.Time      `json:"created_at" gorm:"autoCreateTime"`
