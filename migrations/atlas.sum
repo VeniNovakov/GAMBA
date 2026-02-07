@@ -1,4 +1,4 @@
-h1:Xnb/P+867HiYG47M2Xhz4YUgCEcgBL5Cs9tCIRF4KTk=
+h1:eCZ+aWLRwQkmRnderYAbsJVB0hn5VgdE9IZTfIoN+sI=
 20260205175103_create_tables.sql h1:jySOvYvVZk6o5icwfvmcYygVnAOB2aO/j1g9z1CdVNQ=
 20260205175336_create_tables.sql h1:lS0dC/kW65S51Qs/s+XkJNKnbFNRHy2Cpm/8eVI2QM4=
 20260206102902_auth_event_tables.sql h1:Ty22EGwp5oBM82E3CScDZdm6WjSOOJwd/etAC0cBIo8=
@@ -6,3 +6,4 @@ h1:Xnb/P+867HiYG47M2Xhz4YUgCEcgBL5Cs9tCIRF4KTk=
 20260206162529_tables_changes.sql h1:8oFznEfUEy+DWiO4diltdNajJG4dI5ruStD9LnFqLUs=
 20260207193953_int_to_float_change.sql h1:tAYb3mrh2ag8yWP7bE4H2KNyTlEM4PDMkEGFf5yfUrw=
 20260207201237_int_to_float_change.sql h1:4yi9set130+bMqnf6dKbbmVWi1qtlkJAmjPaEXOgCTc=
+20260207231819_int_to_float_change.sql h1:oXVUdbuv+OwKdJ99hphP2uk+vUMP1j/gqC5UpdA8F9A=
