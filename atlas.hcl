@@ -10,7 +10,7 @@ data "external_schema" "gorm" {
 env "local" {
   src = data.external_schema.gorm.url
   dev = "postgres://postgres:password@localhost:5432/gamba_dev?sslmode=disable"
-  url = "postgres://postgres:password@localhost:5432/postgres?sslmode=disable"
+  url = "postgres://postgres:password@localhost:5432/gamba_dev?sslmode=disable"
   migration {
     dir = "file://migrations"
   }
