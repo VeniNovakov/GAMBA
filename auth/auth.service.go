@@ -169,8 +169,6 @@ func (s *AuthService) ValidateAccessToken(tokenString string) (*AccessTokenClaim
 	return claims, nil
 }
 
-// --- private helpers ---
-
 func (s *AuthService) generateTokenPair(user *models.User) (*TokenPair, error) {
 	// Access token
 	now := time.Now()

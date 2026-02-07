@@ -23,8 +23,6 @@ func (c *AuthController) RegisterRoutes(rg *gin.RouterGroup) {
 	rg.GET("/me", c.Me)
 }
 
-// --- handlers ---
-
 func (c *AuthController) Register(ctx *gin.Context) {
 	var req registerRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

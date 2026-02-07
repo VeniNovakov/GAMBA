@@ -27,14 +27,14 @@ func Auth(authService *AuthService) gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set("claims", claims)
+		ctx.Set("user", claims)
 		ctx.Next()
 	}
 }
 
 func RequireRole(roles ...string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		val, exists := ctx.Get("claims")
+		val, exists := ctx.Get("user")
 		if !exists {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
@@ -54,7 +54,7 @@ func RequireRole(roles ...string) gin.HandlerFunc {
 }
 
 func GetClaims(ctx *gin.Context) *AccessTokenClaims {
-	val, _ := ctx.Get("claims")
+	val, _ := ctx.Get("user")
 	claims, _ := val.(*AccessTokenClaims)
 	return claims
 }

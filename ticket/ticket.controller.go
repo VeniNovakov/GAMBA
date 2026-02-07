@@ -2,6 +2,7 @@ package ticket
 
 import (
 	"encoding/json"
+	"gamba/auth"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,14 +17,13 @@ func NewController(service *Service) *Controller {
 	return &Controller{service: service}
 }
 
-// RegisterRoutes wires endpoints into a gin router/group.
 func (c *Controller) RegisterRoutes(r gin.IRoutes) {
-	r.GET("/tickets", c.GetAll)
-	r.POST("/tickets", c.Create)
-	r.GET("/tickets/:id", c.GetByID)
-	r.PUT("/tickets/:id", c.Update)
-	r.POST("/tickets/:id/close", c.Close)
-	r.POST("/tickets/:id/messages", c.AddMessage)
+	r.GET("", c.GetAll)
+	r.POST("", c.Create)
+	r.GET("/:id", c.GetByID)
+	r.PUT("/:id", c.Update)
+	r.POST("/:id/close", c.Close)
+	r.POST("/:id/messages", c.AddMessage)
 }
 
 func (c *Controller) GetAll(ctx *gin.Context) {
@@ -57,7 +57,11 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 }
 
 func (c *Controller) Create(ctx *gin.Context) {
-	userID, _ := getUserFromContext(ctx)
+	userID, ok := getUserFromContext(ctx)
+	if !ok {
+		writeError(ctx, http.StatusUnauthorized, "unauthorized")
+		return
+	}
 
 	var req CreateRequest
 	if err := decodeJSONBody(ctx, &req); err != nil {
@@ -139,27 +143,19 @@ func (c *Controller) AddMessage(ctx *gin.Context) {
 	writeJSON(ctx, http.StatusCreated, message)
 }
 
-// getUserFromContext extracts user info from gin context (set by auth middleware).
-// Your middleware should set these keys:
-//
-//	ctx.Set("user_id", uuid.UUID(...))
-//	ctx.Set("role", "administrator")
 func getUserFromContext(ctx *gin.Context) (uuid.UUID, bool) {
-	var userID uuid.UUID
-	if v, ok := ctx.Get("user_id"); ok {
-		if id, ok := v.(uuid.UUID); ok {
-			userID = id
-		}
+	v, exists := ctx.Get("user")
+
+	if !exists {
+		return uuid.Nil, false
 	}
 
-	role := ""
-	if v, ok := ctx.Get("role"); ok {
-		if s, ok := v.(string); ok {
-			role = s
-		}
+	user, ok := v.(*auth.AccessTokenClaims)
+	if !ok || user.UserID == uuid.Nil {
+		return uuid.Nil, false
 	}
 
-	return userID, role == "administrator"
+	return user.UserID, true
 }
 
 func handleError(ctx *gin.Context, err error) {
@@ -181,8 +177,6 @@ func writeError(ctx *gin.Context, status int, msg string) {
 	ctx.JSON(status, gin.H{"error": msg})
 }
 
-// decodeJSONBody mirrors your previous json.NewDecoder(r.Body).Decode(&req)
-// and keeps behavior close to your chi version (no implicit validation).
 func decodeJSONBody(ctx *gin.Context, dst any) error {
 	dec := json.NewDecoder(ctx.Request.Body)
 	dec.DisallowUnknownFields() // optional; remove if you want permissive parsing

@@ -2,6 +2,7 @@ package main
 
 import (
 	"gamba/auth"
+	"gamba/ticket"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,8 @@ func main() {
 
 	authService := auth.NewAuthService(db, "your-jwt-secret")
 	authController := auth.NewAuthController(authService)
-
+	ticketService := ticket.NewService(db)
+	ticketController := ticket.NewController(ticketService)
 	// Public routes
 	authRoutes := r.Group("/api/auth")
 	authController.RegisterRoutes(authRoutes)
@@ -30,9 +32,11 @@ func main() {
 
 	api.Use(auth.Auth(authService))
 	{
-		//
+		ticketRoutes := api.Group("/tickets")
+		ticketController.RegisterRoutes(ticketRoutes)
 	}
 
+	api.Use(auth.Auth(authService))
 	admin := r.Group("/api/admin")
 	admin.Use(auth.Auth(authService), auth.RequireRole("administrator"))
 	{

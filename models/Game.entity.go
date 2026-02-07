@@ -18,12 +18,9 @@ const (
 type GameCategory string
 
 const (
-	GameCategorySlots      GameCategory = "slots"
-	GameCategoryTableGames GameCategory = "table_games"
-	GameCategoryCards      GameCategory = "cards"
-	GameCategoryDice       GameCategory = "dice"
-	GameCategoryLottery    GameCategory = "lottery"
-	GameCategoryOther      GameCategory = "other"
+	GameCategorySlots GameCategory = "slots"
+	GameCategoryDice  GameCategory = "dice"
+	GameCategoryOther GameCategory = "other"
 )
 
 type Game struct {
