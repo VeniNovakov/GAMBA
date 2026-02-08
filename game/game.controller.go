@@ -18,10 +18,13 @@ func NewController(service *Service) *Controller {
 func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 	r.GET("/games", c.GetAll)
 	r.GET("/games/:id", c.GetByID)
+	r.POST("/games/play", c.Play)
+}
+
+func (c *Controller) RegisterAdminRoutes(r *gin.RouterGroup) {
 	r.POST("/games", c.Create)       // admin only
 	r.PUT("/games/:id", c.Update)    // admin only
 	r.DELETE("/games/:id", c.Delete) // admin only
-	r.POST("/games/play", c.Play)    // authenticated users
 }
 
 func (c *Controller) GetAll(ctx *gin.Context) {

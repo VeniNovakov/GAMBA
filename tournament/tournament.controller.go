@@ -21,8 +21,9 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 	r.GET("/tournaments/:id/leaderboard", c.GetLeaderboard)
 	r.POST("/tournaments/:id/join", c.Join)
 	r.POST("/tournaments/:id/leave", c.Leave)
+}
 
-	// Admin only
+func (c *Controller) RegisterAdminRoutes(r *gin.RouterGroup) {
 	r.POST("/tournaments", c.Create)
 	r.PUT("/tournaments/:id", c.Update)
 	r.DELETE("/tournaments/:id", c.Delete)
@@ -64,7 +65,6 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, tournament)
 }
 
-// admin-only
 func (c *Controller) Create(ctx *gin.Context) {
 
 	var req CreateRequest
@@ -81,7 +81,6 @@ func (c *Controller) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, tournament)
 }
 
-// admin-only
 func (c *Controller) Update(ctx *gin.Context) {
 
 	id, err := uuid.Parse(ctx.Param("id"))
@@ -104,7 +103,6 @@ func (c *Controller) Update(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, tournament)
 }
 
-// admin-only
 func (c *Controller) Delete(ctx *gin.Context) {
 
 	id, err := uuid.Parse(ctx.Param("id"))
@@ -162,7 +160,6 @@ func (c *Controller) Leave(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "left tournament"})
 }
 
-// admin only
 func (c *Controller) UpdateScore(ctx *gin.Context) {
 
 	tournamentID, err := uuid.Parse(ctx.Param("id"))
@@ -199,7 +196,6 @@ func (c *Controller) GetLeaderboard(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, leaderboard)
 }
 
-// only from admin
 func (c *Controller) EndTournament(ctx *gin.Context) {
 
 	tournamentID, err := uuid.Parse(ctx.Param("id"))

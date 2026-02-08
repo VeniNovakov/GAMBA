@@ -17,7 +17,7 @@ func NewController(service *Service) *Controller {
 	return &Controller{service: service}
 }
 
-func (c *Controller) RegisterRoutes(r gin.IRoutes) {
+func (c *Controller) RegisterAdminRoutes(r gin.IRoutes) {
 	r.GET("", c.GetAll)
 	r.POST("", c.Create)
 	r.GET("/:id", c.GetByID)
@@ -27,6 +27,7 @@ func (c *Controller) RegisterRoutes(r gin.IRoutes) {
 }
 
 func (c *Controller) GetAll(ctx *gin.Context) {
+
 	user := auth.GetClaims(ctx)
 
 	tickets, err := c.service.GetAll(user.UserID, user.Role)
@@ -56,7 +57,6 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 	writeJSON(ctx, http.StatusOK, ticket)
 }
 
-// admin-only
 func (c *Controller) Create(ctx *gin.Context) {
 	user := auth.GetClaims(ctx)
 
@@ -99,7 +99,6 @@ func (c *Controller) Update(ctx *gin.Context) {
 	writeJSON(ctx, http.StatusOK, ticket)
 }
 
-// admin-only
 func (c *Controller) Close(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {

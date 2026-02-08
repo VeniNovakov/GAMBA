@@ -36,8 +36,8 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 	r.POST("/messages/:id/read", c.MarkMessageAsRead)
 }
 
-func (c *Controller) RegisterWebSocket(r *gin.Engine) {
-	r.GET("/ws", c.HandleWebSocket)
+func (c *Controller) RegisterWebSocket(rg *gin.RouterGroup) {
+	rg.GET("", c.HandleWebSocket)
 }
 
 func (c *Controller) GetUserChats(ctx *gin.Context) {

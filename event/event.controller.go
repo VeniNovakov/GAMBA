@@ -22,8 +22,9 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 
 	// Auth required
 	r.POST("/events/:id/bet", c.PlaceBet)
+}
 
-	// Admin only
+func (c *Controller) RegisterAdminRoutes(r *gin.RouterGroup) {
 	r.POST("/events", c.Create)
 	r.PUT("/events/:id", c.Update)
 	r.DELETE("/events/:id", c.Delete)

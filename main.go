@@ -3,8 +3,13 @@ package main
 import (
 	"fmt"
 	"gamba/auth"
+	"gamba/bet"
 	"gamba/chat"
+	"gamba/event"
+	"gamba/game"
 	"gamba/ticket"
+	"gamba/tournament"
+	"gamba/transaction"
 	"gamba/user"
 	"log"
 	"os"
@@ -51,12 +56,22 @@ func main() {
 	ticketService := ticket.NewService(db)
 	chatService := chat.NewService(db, hub)
 	userService := user.NewService(db)
+	gameService := game.NewService(db)
+	eventService := event.NewService(db)
+	betService := bet.NewService(db)
+	transactionService := transaction.NewService(db)
+	tournamentsService := tournament.NewService(db)
 
 	// Controllers
 	authController := auth.NewAuthController(authService)
 	ticketController := ticket.NewController(ticketService)
 	chatController := chat.NewController(chatService, hub)
 	userController := user.NewController(userService)
+	gameController := game.NewController(gameService)
+	eventController := event.NewController(eventService)
+	betController := bet.NewController(betService)
+	transactionController := transaction.NewController(transactionService)
+	tournamentController := tournament.NewController(tournamentsService)
 
 	// Public routes
 	authRoutes := r.Group("/api/auth")
@@ -66,20 +81,32 @@ func main() {
 	api := r.Group("/api")
 	api.Use(auth.Auth(authService))
 	{
-		ticketRoutes := api.Group("/tickets")
-		ticketController.RegisterRoutes(ticketRoutes)
-
+		gameController.RegisterRoutes(api)
 		chatController.RegisterRoutes(api)
 		userController.RegisterRoutes(api)
+		eventController.RegisterRoutes(api)
+		betController.RegisterRoutes(api)
+		transactionController.RegisterRoutes(api)
+		tournamentController.RegisterRoutes(api)
 	}
+	ticketRoutes := api.Group("/tickets")
 
-	chatController.RegisterWebSocket(r)
+	ws := r.Group("/ws")
+	ws.Use(auth.Auth(authService))
+
+	chatController.RegisterWebSocket(ws)
 
 	// Admin routes
-	admin := r.Group("/api/admin")
+	admin := r.Group("/api")
 	admin.Use(auth.Auth(authService), auth.RequireRole("administrator"))
 	{
+		ticketController.RegisterAdminRoutes(ticketRoutes)
+		gameController.RegisterAdminRoutes(admin)
 		userController.RegisterAdminRoutes(admin)
+		eventController.RegisterAdminRoutes(admin)
+		betController.RegisterAdminRoutes(admin)
+		transactionController.RegisterAdminRoutes(admin)
+		tournamentController.RegisterAdminRoutes(admin)
 	}
 
 	r.Run(":8080")

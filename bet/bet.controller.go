@@ -2,6 +2,7 @@ package bet
 
 import (
 	"gamba/auth"
+	"gamba/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,9 +21,12 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 	r.GET("/bets", c.GetUserBets)
 	r.GET("/bets/summary", c.GetUserSummary)
 	r.GET("/bets/:id", c.GetByID)
-	r.GET("/admin/bets", c.GetAll) // admin only
+
 }
 
+func (c *Controller) RegisterAdminRoutes(r *gin.RouterGroup) {
+	r.GET("/admin/bets", c.GetAll)
+}
 func (c *Controller) GetByID(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -30,9 +34,9 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	userID, isAdmin := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
-	bet, err := c.service.GetByID(id, userID, isAdmin)
+	bet, err := c.service.GetByID(id, user.UserID, user.Role == models.RoleAdministrator)
 	if err != nil {
 		handleError(ctx, err)
 		return
@@ -61,7 +65,6 @@ func (c *Controller) GetUserBets(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, bets)
 }
 
-// should be administrator only
 func (c *Controller) GetAll(ctx *gin.Context) {
 
 	var filter BetFilter

@@ -22,7 +22,10 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 	r.POST("/transactions/deposit", c.Deposit)
 	r.POST("/transactions/withdraw", c.Withdraw)
 	r.POST("/transactions/transfer", c.Transfer)
-	r.GET("/admin/transactions", c.GetAll) // admin only
+}
+
+func (c *Controller) RegisterAdminRoutes(r *gin.RouterGroup) {
+	r.GET("/admin/transactions", c.GetAll)
 }
 
 func (c *Controller) GetByID(ctx *gin.Context) {
