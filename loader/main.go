@@ -23,6 +23,7 @@ func main() {
 		&models.Ticket{},
 		&models.TicketMessage{},
 		&models.Transaction{},
+		&models.Friend{},
 	)
 	if err != nil {
 		panic(err)
