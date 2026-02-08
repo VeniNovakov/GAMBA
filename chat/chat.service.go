@@ -138,9 +138,7 @@ func (s *Service) GetOrCreateChat(userID, otherUserID uuid.UUID) (*models.Chat, 
 	return s.CreateChat(userID, &CreateChatRequest{UserID: otherUserID})
 }
 
-// GetMessages returns messages for a chat
 func (s *Service) GetMessages(chatID, userID uuid.UUID, filter *MessageFilter) ([]models.Message, error) {
-	// Verify user is part of chat
 	var chat models.Chat
 	if err := s.db.First(&chat, "id = ?", chatID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -160,7 +158,7 @@ func (s *Service) GetMessages(chatID, userID uuid.UUID, filter *MessageFilter) (
 		query = query.Where("created_at < ?", *filter.Before)
 	}
 
-	if err := query.Order("created_at DESC").Limit(filter.Limit).Find(&messages).Error; err != nil {
+	if err := query.Order("created_at ASC").Limit(filter.Limit).Find(&messages).Error; err != nil {
 		return nil, err
 	}
 

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"gamba/auth"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,11 +19,9 @@ func NewController(service *Service) *Controller {
 func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 	r.GET("/users/me", c.GetProfile)
 	r.PUT("/users/me", c.UpdateProfile)
-	r.PUT("/users/me/password", c.ChangePassword)
 	r.GET("/users/search", c.Search)
 	r.GET("/users/:id", c.GetByID)
 
-	// Friends
 	r.GET("/friends", c.GetFriends)
 	r.GET("/friends/requests", c.GetPendingRequests)
 	r.GET("/friends/sent", c.GetSentRequests)
@@ -41,26 +40,18 @@ func (c *Controller) RegisterAdminRoutes(r *gin.RouterGroup) {
 }
 
 func (c *Controller) GetProfile(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
-	user, err := c.service.GetProfile(userID)
+	userEntity, err := c.service.GetProfile(user.UserID)
 	if err != nil {
 		handleError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(http.StatusOK, userEntity)
 }
 
 func (c *Controller) UpdateProfile(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
 	var req UpdateProfileRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -68,32 +59,12 @@ func (c *Controller) UpdateProfile(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.service.UpdateProfile(userID, &req)
+	userEntity, err := c.service.UpdateProfile(user.UserID, &req)
 	if err != nil {
 		handleError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, user)
-}
-
-func (c *Controller) ChangePassword(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
-
-	var req ChangePasswordRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
-		return
-	}
-
-	if err := c.service.ChangePassword(userID, &req); err != nil {
-		handleError(ctx, err)
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "password changed"})
+	ctx.JSON(http.StatusOK, userEntity)
 }
 
 func (c *Controller) GetByID(ctx *gin.Context) {
@@ -197,15 +168,6 @@ func (c *Controller) Activate(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "user activated"})
 }
 
-func getUserID(ctx *gin.Context) uuid.UUID {
-	userID, exists := ctx.Get("user_id")
-	if !exists {
-		return uuid.Nil
-	}
-	uid, _ := userID.(uuid.UUID)
-	return uid
-}
-
 func handleError(ctx *gin.Context, err error) {
 	switch err {
 	case ErrUserNotFound:
@@ -228,13 +190,9 @@ func handleError(ctx *gin.Context, err error) {
 }
 
 func (c *Controller) GetFriends(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
-	friends, err := c.service.GetFriends(userID)
+	friends, err := c.service.GetFriends(user.UserID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
@@ -243,13 +201,9 @@ func (c *Controller) GetFriends(ctx *gin.Context) {
 }
 
 func (c *Controller) GetPendingRequests(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
-	requests, err := c.service.GetPendingRequests(userID)
+	requests, err := c.service.GetPendingRequests(user.UserID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
@@ -258,13 +212,9 @@ func (c *Controller) GetPendingRequests(ctx *gin.Context) {
 }
 
 func (c *Controller) GetSentRequests(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
-	requests, err := c.service.GetSentRequests(userID)
+	requests, err := c.service.GetSentRequests(user.UserID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
@@ -273,11 +223,7 @@ func (c *Controller) GetSentRequests(ctx *gin.Context) {
 }
 
 func (c *Controller) SendFriendRequest(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
 	var req SendFriendRequestRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -291,7 +237,7 @@ func (c *Controller) SendFriendRequest(ctx *gin.Context) {
 		return
 	}
 
-	request, err := c.service.SendFriendRequest(userID, friendID)
+	request, err := c.service.SendFriendRequest(user.UserID, friendID)
 	if err != nil {
 		handleError(ctx, err)
 		return
@@ -300,11 +246,7 @@ func (c *Controller) SendFriendRequest(ctx *gin.Context) {
 }
 
 func (c *Controller) AcceptFriendRequest(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
 	requestID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -312,7 +254,7 @@ func (c *Controller) AcceptFriendRequest(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.service.AcceptFriendRequest(userID, requestID); err != nil {
+	if err := c.service.AcceptFriendRequest(user.UserID, requestID); err != nil {
 		handleError(ctx, err)
 		return
 	}
@@ -320,11 +262,7 @@ func (c *Controller) AcceptFriendRequest(ctx *gin.Context) {
 }
 
 func (c *Controller) RejectFriendRequest(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
 	requestID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -332,7 +270,7 @@ func (c *Controller) RejectFriendRequest(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.service.RejectFriendRequest(userID, requestID); err != nil {
+	if err := c.service.RejectFriendRequest(user.UserID, requestID); err != nil {
 		handleError(ctx, err)
 		return
 	}
@@ -340,11 +278,7 @@ func (c *Controller) RejectFriendRequest(ctx *gin.Context) {
 }
 
 func (c *Controller) RemoveFriend(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
 	friendID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -352,7 +286,7 @@ func (c *Controller) RemoveFriend(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.service.RemoveFriend(userID, friendID); err != nil {
+	if err := c.service.RemoveFriend(user.UserID, friendID); err != nil {
 		handleError(ctx, err)
 		return
 	}
