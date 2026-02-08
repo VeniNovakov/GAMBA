@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"gamba/auth"
+	"gamba/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,9 +37,9 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	userID, isAdmin := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
-	tx, err := c.service.GetByID(id, userID, isAdmin)
+	tx, err := c.service.GetByID(id, user.UserID, user.Role == models.RoleAdministrator)
 	if err != nil {
 		handleError(ctx, err)
 		return
@@ -46,7 +48,7 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 }
 
 func (c *Controller) GetUserTransactions(ctx *gin.Context) {
-	userID, _ := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
 	var filter TransactionFilter
 	if err := ctx.ShouldBindQuery(&filter); err != nil {
@@ -58,7 +60,7 @@ func (c *Controller) GetUserTransactions(ctx *gin.Context) {
 		filter.Limit = 20
 	}
 
-	transactions, err := c.service.GetUserTransactions(userID, &filter)
+	transactions, err := c.service.GetUserTransactions(user.UserID, &filter)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
@@ -67,11 +69,6 @@ func (c *Controller) GetUserTransactions(ctx *gin.Context) {
 }
 
 func (c *Controller) GetAll(ctx *gin.Context) {
-	_, isAdmin := getUserFromContext(ctx)
-	if !isAdmin {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
 
 	var filter TransactionFilter
 	if err := ctx.ShouldBindQuery(&filter); err != nil {
@@ -92,7 +89,7 @@ func (c *Controller) GetAll(ctx *gin.Context) {
 }
 
 func (c *Controller) Deposit(ctx *gin.Context) {
-	userID, _ := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
 	var req DepositRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -100,7 +97,7 @@ func (c *Controller) Deposit(ctx *gin.Context) {
 		return
 	}
 
-	tx, err := c.service.Deposit(userID, &req)
+	tx, err := c.service.Deposit(user.UserID, &req)
 	if err != nil {
 		handleError(ctx, err)
 		return
@@ -109,7 +106,7 @@ func (c *Controller) Deposit(ctx *gin.Context) {
 }
 
 func (c *Controller) Withdraw(ctx *gin.Context) {
-	userID, _ := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
 	var req WithdrawRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -117,7 +114,7 @@ func (c *Controller) Withdraw(ctx *gin.Context) {
 		return
 	}
 
-	tx, err := c.service.Withdraw(userID, &req)
+	tx, err := c.service.Withdraw(user.UserID, &req)
 	if err != nil {
 		handleError(ctx, err)
 		return
@@ -126,7 +123,7 @@ func (c *Controller) Withdraw(ctx *gin.Context) {
 }
 
 func (c *Controller) Transfer(ctx *gin.Context) {
-	userID, _ := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
 	var req TransferRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -134,7 +131,7 @@ func (c *Controller) Transfer(ctx *gin.Context) {
 		return
 	}
 
-	tx, err := c.service.Transfer(userID, &req)
+	tx, err := c.service.Transfer(user.UserID, &req)
 	if err != nil {
 		handleError(ctx, err)
 		return
@@ -143,21 +140,14 @@ func (c *Controller) Transfer(ctx *gin.Context) {
 }
 
 func (c *Controller) GetUserSummary(ctx *gin.Context) {
-	userID, _ := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
-	summary, err := c.service.GetUserSummary(userID)
+	summary, err := c.service.GetUserSummary(user.UserID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 	ctx.JSON(http.StatusOK, summary)
-}
-
-func getUserFromContext(ctx *gin.Context) (uuid.UUID, bool) {
-	userID, _ := ctx.Get("user_id")
-	role, _ := ctx.Get("role")
-	uid, _ := userID.(uuid.UUID)
-	return uid, role == "administrator"
 }
 
 func handleError(ctx *gin.Context, err error) {

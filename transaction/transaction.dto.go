@@ -1,9 +1,8 @@
 package transaction
 
 import (
-	"time"
-
 	"github.com/google/uuid"
+	"time"
 )
 
 type DepositRequest struct {

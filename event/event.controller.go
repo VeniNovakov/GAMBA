@@ -16,11 +16,9 @@ func NewController(service *Service) *Controller {
 }
 
 func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
-	// Public
 	r.GET("/events", c.GetAll)
 	r.GET("/events/:id", c.GetByID)
 
-	// Auth required
 	r.POST("/events/:id/bet", c.PlaceBet)
 }
 
