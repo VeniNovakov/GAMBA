@@ -17,9 +17,12 @@ func NewController(service *Service) *Controller {
 	return &Controller{service: service}
 }
 
+func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
+	r.POST("", c.Create)
+}
+
 func (c *Controller) RegisterAdminRoutes(r gin.IRoutes) {
 	r.GET("", c.GetAll)
-	r.POST("", c.Create)
 	r.GET("/:id", c.GetByID)
 	r.PUT("/:id", c.Update)
 	r.POST("/:id/close", c.Close)

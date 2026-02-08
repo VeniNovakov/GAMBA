@@ -88,6 +88,7 @@ func main() {
 		betController.RegisterRoutes(api)
 		transactionController.RegisterRoutes(api)
 		tournamentController.RegisterRoutes(api)
+		ticketController.RegisterRoutes(api)
 	}
 	ticketRoutes := api.Group("/tickets")
 
