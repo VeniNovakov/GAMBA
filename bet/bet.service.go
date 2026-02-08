@@ -21,7 +21,6 @@ func NewService(db *gorm.DB) *Service {
 	return &Service{db: db}
 }
 
-// GetByID returns a bet by ID
 func (s *Service) GetByID(id, userID uuid.UUID, isAdmin bool) (*models.Bet, error) {
 	var bet models.Bet
 	if err := s.db.First(&bet, "id = ?", id).Error; err != nil {
@@ -38,7 +37,6 @@ func (s *Service) GetByID(id, userID uuid.UUID, isAdmin bool) (*models.Bet, erro
 	return &bet, nil
 }
 
-// GetUserBets returns all bets for a user with optional filters
 func (s *Service) GetUserBets(userID uuid.UUID, filter *BetFilter) ([]models.Bet, error) {
 	var bets []models.Bet
 	query := s.db.Where("user_id = ?", userID)
@@ -58,7 +56,6 @@ func (s *Service) GetUserBets(userID uuid.UUID, filter *BetFilter) ([]models.Bet
 	return bets, nil
 }
 
-// GetAll returns all bets (admin only)
 func (s *Service) GetAll(filter *BetFilter) ([]models.Bet, error) {
 	var bets []models.Bet
 	query := s.db.Model(&models.Bet{})

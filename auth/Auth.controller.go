@@ -39,11 +39,20 @@ func (c *AuthController) Register(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, userResponse{
-		ID:       user.ID.String(),
-		Username: user.Username,
-		Role:     string(user.Role),
-		Balance:  int64(user.Balance),
+	tokens, err := c.authService.generateTokenPair(user)
+	if err != nil {
+		ctx.JSON(http.StatusCreated, gin.H{"message": "user created, please login manually"})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, authResponse{
+		User: userResponse{
+			ID:       user.ID.String(),
+			Username: user.Username,
+			Role:     string(user.Role),
+			Balance:  int64(user.Balance),
+		},
+		Tokens: tokens,
 	})
 }
 
