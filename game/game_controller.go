@@ -61,7 +61,7 @@ func (c *Controller) Create(ctx *gin.Context) {
 
 	game, err := c.service.Create(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		handleError(ctx, err)
 		return
 	}
 	ctx.JSON(http.StatusCreated, game)
@@ -128,6 +128,8 @@ func handleError(ctx *gin.Context, err error) {
 	case ErrInsufficientFunds:
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	case ErrBetTooLow, ErrBetTooHigh:
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	case ErrInvalidCategory:
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	default:
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
