@@ -18,15 +18,15 @@ func NewController(service *Service) *Controller {
 }
 
 func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
-	r.POST("", c.Create)
+	r.POST("/ticket", c.Create)
 }
 
 func (c *Controller) RegisterAdminRoutes(r gin.IRoutes) {
-	r.GET("", c.GetAll)
-	r.GET("/:id", c.GetByID)
-	r.PUT("/:id", c.Update)
-	r.POST("/:id/close", c.Close)
-	r.POST("/:id/messages", c.AddMessage)
+	r.GET("/ticket", c.GetAll)
+	r.GET("/ticket/:id", c.GetByID)
+	r.PUT("/ticket/:id", c.Update)
+	r.POST("/ticket/:id/close", c.Close)
+	r.POST("/ticket/:id/messages", c.AddMessage)
 }
 
 func (c *Controller) GetAll(ctx *gin.Context) {

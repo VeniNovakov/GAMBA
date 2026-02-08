@@ -79,6 +79,8 @@ func main() {
 
 	// Protected routes
 	api := r.Group("/api")
+	//ticketRoutes := api.Group("/tickets")
+
 	api.Use(auth.Auth(authService))
 	{
 		gameController.RegisterRoutes(api)
@@ -90,7 +92,6 @@ func main() {
 		tournamentController.RegisterRoutes(api)
 		ticketController.RegisterRoutes(api)
 	}
-	ticketRoutes := api.Group("/tickets")
 
 	ws := r.Group("/ws")
 	ws.Use(auth.Auth(authService))
@@ -101,7 +102,7 @@ func main() {
 	admin := r.Group("/api")
 	admin.Use(auth.Auth(authService), auth.RequireRole("administrator"))
 	{
-		ticketController.RegisterAdminRoutes(ticketRoutes)
+		ticketController.RegisterAdminRoutes(admin)
 		gameController.RegisterAdminRoutes(admin)
 		userController.RegisterAdminRoutes(admin)
 		eventController.RegisterAdminRoutes(admin)

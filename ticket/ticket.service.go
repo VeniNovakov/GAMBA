@@ -2,7 +2,6 @@ package ticket
 
 import (
 	"errors"
-
 	"gamba/models"
 
 	"github.com/google/uuid"
