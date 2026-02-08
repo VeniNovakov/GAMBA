@@ -68,11 +68,6 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 }
 
 func (c *Controller) Create(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
-
 	var req CreateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
@@ -88,11 +83,6 @@ func (c *Controller) Create(ctx *gin.Context) {
 }
 
 func (c *Controller) Update(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
-
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
@@ -114,11 +104,6 @@ func (c *Controller) Update(ctx *gin.Context) {
 }
 
 func (c *Controller) Delete(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
-
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
@@ -133,11 +118,6 @@ func (c *Controller) Delete(ctx *gin.Context) {
 }
 
 func (c *Controller) AddOutcome(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
-
 	eventID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid event id"})
@@ -159,11 +139,6 @@ func (c *Controller) AddOutcome(ctx *gin.Context) {
 }
 
 func (c *Controller) UpdateOutcome(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
-
 	outcomeID, err := uuid.Parse(ctx.Param("outcomeId"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid outcome id"})
@@ -185,11 +160,6 @@ func (c *Controller) UpdateOutcome(ctx *gin.Context) {
 }
 
 func (c *Controller) DeleteOutcome(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
-
 	outcomeID, err := uuid.Parse(ctx.Param("outcomeId"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid outcome id"})
@@ -231,11 +201,6 @@ func (c *Controller) PlaceBet(ctx *gin.Context) {
 }
 
 func (c *Controller) Settle(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
-
 	eventID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid event id"})
@@ -256,11 +221,6 @@ func (c *Controller) Settle(ctx *gin.Context) {
 }
 
 func (c *Controller) Cancel(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
-
 	eventID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid event id"})
@@ -281,11 +241,6 @@ func getUserID(ctx *gin.Context) uuid.UUID {
 	}
 	uid, _ := userID.(uuid.UUID)
 	return uid
-}
-
-func isAdmin(ctx *gin.Context) bool {
-	role, _ := ctx.Get("role")
-	return role == "administrator"
 }
 
 func handleError(ctx *gin.Context, err error) {
