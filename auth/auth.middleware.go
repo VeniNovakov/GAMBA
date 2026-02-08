@@ -26,7 +26,6 @@ func Auth(authService *AuthService) gin.HandlerFunc {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
 			return
 		}
-
 		ctx.Set("user", claims)
 		ctx.Next()
 	}

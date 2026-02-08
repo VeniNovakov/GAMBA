@@ -20,7 +20,6 @@ func (c *AuthController) RegisterRoutes(rg *gin.RouterGroup) {
 	rg.POST("/login", c.Login)
 	rg.POST("/refresh", c.Refresh)
 	rg.POST("/logout", c.Logout)
-	rg.GET("/me", c.Me)
 }
 
 func (c *AuthController) Register(ctx *gin.Context) {
@@ -44,7 +43,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 		ID:       user.ID.String(),
 		Username: user.Username,
 		Role:     string(user.Role),
-		Balance:  user.Balance,
+		Balance:  int64(user.Balance),
 	})
 }
 
@@ -75,7 +74,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 			ID:       user.ID.String(),
 			Username: user.Username,
 			Role:     string(user.Role),
-			Balance:  user.Balance,
+			Balance:  int64(user.Balance),
 		},
 		Tokens: tokens,
 	})
@@ -121,20 +120,4 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})
-}
-
-func (c *AuthController) Me(ctx *gin.Context) {
-	claims, exists := ctx.Get("claims")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
-
-	userClaims := claims.(*AccessTokenClaims)
-
-	ctx.JSON(http.StatusOK, userResponse{
-		ID:       userClaims.UserID.String(),
-		Username: userClaims.Username,
-		Role:     string(userClaims.Role),
-	})
 }

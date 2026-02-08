@@ -1,6 +1,7 @@
 package bet
 
 import (
+	"gamba/auth"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -40,7 +41,7 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 }
 
 func (c *Controller) GetUserBets(ctx *gin.Context) {
-	userID, _ := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
 	var filter BetFilter
 	if err := ctx.ShouldBindQuery(&filter); err != nil {
@@ -52,7 +53,7 @@ func (c *Controller) GetUserBets(ctx *gin.Context) {
 		filter.Limit = 20
 	}
 
-	bets, err := c.service.GetUserBets(userID, &filter)
+	bets, err := c.service.GetUserBets(user.UserID, &filter)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
@@ -60,12 +61,8 @@ func (c *Controller) GetUserBets(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, bets)
 }
 
+// should be administrator only
 func (c *Controller) GetAll(ctx *gin.Context) {
-	_, isAdmin := getUserFromContext(ctx)
-	if !isAdmin {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
 
 	var filter BetFilter
 	if err := ctx.ShouldBindQuery(&filter); err != nil {
@@ -86,21 +83,14 @@ func (c *Controller) GetAll(ctx *gin.Context) {
 }
 
 func (c *Controller) GetUserSummary(ctx *gin.Context) {
-	userID, _ := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
-	summary, err := c.service.GetUserSummary(userID)
+	summary, err := c.service.GetUserSummary(user.UserID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 	ctx.JSON(http.StatusOK, summary)
-}
-
-func getUserFromContext(ctx *gin.Context) (uuid.UUID, bool) {
-	userID, _ := ctx.Get("user_id")
-	role, _ := ctx.Get("role")
-	uid, _ := userID.(uuid.UUID)
-	return uid, role == "administrator"
 }
 
 func handleError(ctx *gin.Context, err error) {

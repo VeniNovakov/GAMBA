@@ -64,11 +64,8 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, tournament)
 }
 
+// admin-only
 func (c *Controller) Create(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
 
 	var req CreateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -84,11 +81,8 @@ func (c *Controller) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, tournament)
 }
 
+// admin-only
 func (c *Controller) Update(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
 
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -110,11 +104,8 @@ func (c *Controller) Update(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, tournament)
 }
 
+// admin-only
 func (c *Controller) Delete(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
 
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -171,11 +162,8 @@ func (c *Controller) Leave(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "left tournament"})
 }
 
+// admin only
 func (c *Controller) UpdateScore(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
 
 	tournamentID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -211,11 +199,8 @@ func (c *Controller) GetLeaderboard(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, leaderboard)
 }
 
+// only from admin
 func (c *Controller) EndTournament(ctx *gin.Context) {
-	if !isAdmin(ctx) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		return
-	}
 
 	tournamentID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -237,11 +222,6 @@ func getUserID(ctx *gin.Context) uuid.UUID {
 	}
 	uid, _ := userID.(uuid.UUID)
 	return uid
-}
-
-func isAdmin(ctx *gin.Context) bool {
-	role, _ := ctx.Get("role")
-	return role == "administrator"
 }
 
 func handleError(ctx *gin.Context, err error) {

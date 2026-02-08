@@ -27,9 +27,9 @@ func (c *Controller) RegisterRoutes(r gin.IRoutes) {
 }
 
 func (c *Controller) GetAll(ctx *gin.Context) {
-	userID, isAdmin := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
-	tickets, err := c.service.GetAll(userID, isAdmin)
+	tickets, err := c.service.GetAll(user.UserID, user.Role)
 	if err != nil {
 		writeError(ctx, http.StatusInternalServerError, "internal error")
 		return
@@ -45,9 +45,9 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	userID, isAdmin := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
-	ticket, err := c.service.GetByID(id, userID, isAdmin)
+	ticket, err := c.service.GetByID(id, user.UserID, user.Role)
 	if err != nil {
 		handleError(ctx, err)
 		return
@@ -56,12 +56,9 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 	writeJSON(ctx, http.StatusOK, ticket)
 }
 
+// admin-only
 func (c *Controller) Create(ctx *gin.Context) {
-	userID, ok := getUserFromContext(ctx)
-	if !ok {
-		writeError(ctx, http.StatusUnauthorized, "unauthorized")
-		return
-	}
+	user := auth.GetClaims(ctx)
 
 	var req CreateRequest
 	if err := decodeJSONBody(ctx, &req); err != nil {
@@ -69,7 +66,7 @@ func (c *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
-	ticket, err := c.service.Create(userID, &req)
+	ticket, err := c.service.Create(user.UserID, &req)
 	if err != nil {
 		writeError(ctx, http.StatusInternalServerError, "internal error")
 		return
@@ -85,7 +82,7 @@ func (c *Controller) Update(ctx *gin.Context) {
 		return
 	}
 
-	userID, isAdmin := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
 	var req UpdateRequest
 	if err := decodeJSONBody(ctx, &req); err != nil {
@@ -93,7 +90,7 @@ func (c *Controller) Update(ctx *gin.Context) {
 		return
 	}
 
-	ticket, err := c.service.Update(id, userID, isAdmin, &req)
+	ticket, err := c.service.Update(id, user.UserID, user.Role, &req)
 	if err != nil {
 		handleError(ctx, err)
 		return
@@ -102,6 +99,7 @@ func (c *Controller) Update(ctx *gin.Context) {
 	writeJSON(ctx, http.StatusOK, ticket)
 }
 
+// admin-only
 func (c *Controller) Close(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -109,9 +107,9 @@ func (c *Controller) Close(ctx *gin.Context) {
 		return
 	}
 
-	userID, isAdmin := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
-	if err := c.service.Close(id, userID, isAdmin); err != nil {
+	if err := c.service.Close(id, user.UserID); err != nil {
 		handleError(ctx, err)
 		return
 	}
@@ -126,7 +124,7 @@ func (c *Controller) AddMessage(ctx *gin.Context) {
 		return
 	}
 
-	userID, isAdmin := getUserFromContext(ctx)
+	user := auth.GetClaims(ctx)
 
 	var req AddMessageRequest
 	if err := decodeJSONBody(ctx, &req); err != nil {
@@ -134,28 +132,13 @@ func (c *Controller) AddMessage(ctx *gin.Context) {
 		return
 	}
 
-	message, err := c.service.AddMessage(ticketID, userID, isAdmin, &req)
+	message, err := c.service.AddMessage(ticketID, user.UserID, user.Role, &req)
 	if err != nil {
 		handleError(ctx, err)
 		return
 	}
 
 	writeJSON(ctx, http.StatusCreated, message)
-}
-
-func getUserFromContext(ctx *gin.Context) (uuid.UUID, bool) {
-	v, exists := ctx.Get("user")
-
-	if !exists {
-		return uuid.Nil, false
-	}
-
-	user, ok := v.(*auth.AccessTokenClaims)
-	if !ok || user.UserID == uuid.Nil {
-		return uuid.Nil, false
-	}
-
-	return user.UserID, true
 }
 
 func handleError(ctx *gin.Context, err error) {

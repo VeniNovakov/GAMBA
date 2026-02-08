@@ -3,7 +3,6 @@ package tournament
 import (
 	"errors"
 	"sort"
-	//"time"
 
 	"gamba/models"
 

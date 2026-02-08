@@ -3,7 +3,7 @@ package ticket
 import (
 	"errors"
 
-	"gamba/models" // adjust import path
+	"gamba/models"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -23,11 +23,11 @@ func NewService(db *gorm.DB) *Service {
 }
 
 // GetAll returns all tickets (admin) or user's tickets
-func (s *Service) GetAll(userID uuid.UUID, isAdmin bool) ([]models.Ticket, error) {
+func (s *Service) GetAll(userID uuid.UUID, role models.Role) ([]models.Ticket, error) {
 	var tickets []models.Ticket
 	query := s.db.Preload("Messages").Preload("User").Preload("Assignee")
 
-	if !isAdmin {
+	if role == models.RolePlayer {
 		query = query.Where("user_id = ?", userID)
 	}
 
@@ -38,18 +38,13 @@ func (s *Service) GetAll(userID uuid.UUID, isAdmin bool) ([]models.Ticket, error
 }
 
 // GetByID returns a ticket by ID
-func (s *Service) GetByID(id, userID uuid.UUID, isAdmin bool) (*models.Ticket, error) {
+func (s *Service) GetByID(id, userID uuid.UUID, role models.Role) (*models.Ticket, error) {
 	var ticket models.Ticket
 	if err := s.db.Preload("Messages.Sender").Preload("User").Preload("Assignee").First(&ticket, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrTicketNotFound
 		}
 		return nil, err
-	}
-
-	// Check authorization
-	if !isAdmin && ticket.UserID != userID {
-		return nil, ErrUnauthorized
 	}
 
 	return &ticket, nil
@@ -77,8 +72,8 @@ func (s *Service) Create(userID uuid.UUID, req *CreateRequest) (*models.Ticket, 
 	return &ticket, nil
 }
 
-// Update updates a ticket (admin only for status/assignment, user can update priority)
-func (s *Service) Update(id, userID uuid.UUID, isAdmin bool, req *UpdateRequest) (*models.Ticket, error) {
+// admin only for status/assignment, user can update priority
+func (s *Service) Update(id, userID uuid.UUID, role models.Role, req *UpdateRequest) (*models.Ticket, error) {
 	var ticket models.Ticket
 	if err := s.db.First(&ticket, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -87,15 +82,10 @@ func (s *Service) Update(id, userID uuid.UUID, isAdmin bool, req *UpdateRequest)
 		return nil, err
 	}
 
-	// Check authorization
-	if !isAdmin && ticket.UserID != userID {
-		return nil, ErrUnauthorized
-	}
-
 	updates := make(map[string]interface{})
 
 	// Admin-only fields
-	if isAdmin {
+	if role == models.RoleAdministrator {
 		if req.Status != nil {
 			updates["status"] = *req.Status
 		}
@@ -119,7 +109,7 @@ func (s *Service) Update(id, userID uuid.UUID, isAdmin bool, req *UpdateRequest)
 }
 
 // AddMessage adds a message to a ticket
-func (s *Service) AddMessage(ticketID, senderID uuid.UUID, isAdmin bool, req *AddMessageRequest) (*models.TicketMessage, error) {
+func (s *Service) AddMessage(ticketID, senderID uuid.UUID, role models.Role, req *AddMessageRequest) (*models.TicketMessage, error) {
 	var ticket models.Ticket
 	if err := s.db.First(&ticket, "id = ?", ticketID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -129,7 +119,7 @@ func (s *Service) AddMessage(ticketID, senderID uuid.UUID, isAdmin bool, req *Ad
 	}
 
 	// Check authorization
-	if !isAdmin && ticket.UserID != senderID {
+	if role == models.RolePlayer && ticket.UserID != senderID {
 		return nil, ErrUnauthorized
 	}
 
@@ -145,7 +135,7 @@ func (s *Service) AddMessage(ticketID, senderID uuid.UUID, isAdmin bool, req *Ad
 	}
 
 	// Update ticket status if user replies to resolved ticket
-	if !isAdmin && ticket.Status == models.TicketStatusResolved {
+	if role == models.RolePlayer && ticket.Status == models.TicketStatusResolved {
 		s.db.Model(&ticket).Update("status", models.TicketStatusOpen)
 	}
 
@@ -153,18 +143,13 @@ func (s *Service) AddMessage(ticketID, senderID uuid.UUID, isAdmin bool, req *Ad
 }
 
 // Close closes a ticket
-func (s *Service) Close(id, userID uuid.UUID, isAdmin bool) error {
+func (s *Service) Close(id, userID uuid.UUID) error {
 	var ticket models.Ticket
 	if err := s.db.First(&ticket, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrTicketNotFound
 		}
 		return err
-	}
-
-	// Check authorization
-	if !isAdmin && ticket.UserID != userID {
-		return ErrUnauthorized
 	}
 
 	return s.db.Model(&ticket).Update("status", models.TicketStatusClosed).Error
