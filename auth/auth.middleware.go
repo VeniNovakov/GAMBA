@@ -31,6 +31,23 @@ func Auth(authService *AuthService) gin.HandlerFunc {
 	}
 }
 
+func AuthWebsocket(authService *AuthService) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		token := ctx.GetHeader("Authorization")
+
+		if token == "" {
+			token = ctx.Query("token")
+		}
+		claims, err := authService.ValidateAccessToken(token)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+			return
+		}
+		ctx.Set("user", claims)
+		ctx.Next()
+	}
+}
+
 func RequireRole(roles ...string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		val, exists := ctx.Get("user")

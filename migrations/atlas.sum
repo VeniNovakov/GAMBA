@@ -1,4 +1,4 @@
-h1:cDQjT6ZkYB2caY/PKZhVRwJXkXqsv2waZkdLrSXxrxM=
+h1:qHS29fhsxHO/dK7M4gM4vRgvLJ5p/DGLJUiPtTKznrY=
 20260205175103_create_tables.sql h1:BKgCJo+g48mwJJbVD/LXJxRAjMScgUhWl1YNSYHGhTY=
 20260205175336_create_tables.sql h1:/HZLuvI/W7xKLGv94fmN7mrso0D4SYIM0vnKsU0exPQ=
 20260206102902_auth_event_tables.sql h1:Q+ZG50mtpgKpqpTqOTxUIEpiFQDk/oXOhWFftWZs0so=
@@ -7,3 +7,4 @@ h1:cDQjT6ZkYB2caY/PKZhVRwJXkXqsv2waZkdLrSXxrxM=
 20260207193953_int_to_float_change.sql h1:qSRfx/avksFLs0achY4zBY0156hBC6coBvv8RZCP4AU=
 20260207201237_int_to_float_change.sql h1:mbfu7Nx2Npk3GV1KxnQedbYBT1ZEcdttP4ZK6hydc7Y=
 20260207231819_int_to_float_change.sql h1:t9ZNcWJ+Lb6D5zaz1wPLe99UsSLzPcrHJEnFQP3L3Io=
+20260208164041_friending.sql h1:J1VRcRbeITt0BaYTuduyVEWhXcQfwdvtgoVip7tWoxk=

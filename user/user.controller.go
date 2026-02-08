@@ -18,8 +18,18 @@ func NewController(service *Service) *Controller {
 func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 	r.GET("/users/me", c.GetProfile)
 	r.PUT("/users/me", c.UpdateProfile)
+	r.PUT("/users/me/password", c.ChangePassword)
 	r.GET("/users/search", c.Search)
 	r.GET("/users/:id", c.GetByID)
+
+	// Friends
+	r.GET("/friends", c.GetFriends)
+	r.GET("/friends/requests", c.GetPendingRequests)
+	r.GET("/friends/sent", c.GetSentRequests)
+	r.POST("/friends/request", c.SendFriendRequest)
+	r.POST("/friends/:id/accept", c.AcceptFriendRequest)
+	r.POST("/friends/:id/reject", c.RejectFriendRequest)
+	r.DELETE("/friends/:id", c.RemoveFriend)
 }
 
 func (c *Controller) RegisterAdminRoutes(r *gin.RouterGroup) {
@@ -65,6 +75,27 @@ func (c *Controller) UpdateProfile(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, user)
 }
+
+func (c *Controller) ChangePassword(ctx *gin.Context) {
+	userID := getUserID(ctx)
+	if userID == uuid.Nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var req ChangePasswordRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	if err := c.service.ChangePassword(userID, &req); err != nil {
+		handleError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "password changed"})
+}
+
 func (c *Controller) GetByID(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -183,7 +214,147 @@ func handleError(ctx *gin.Context, err error) {
 		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 	case ErrInvalidPassword:
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	case ErrCannotFriendSelf:
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	case ErrAlreadyFriends:
+		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+	case ErrRequestNotFound:
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	case ErrNotFriends:
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	default:
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 	}
+}
+
+func (c *Controller) GetFriends(ctx *gin.Context) {
+	userID := getUserID(ctx)
+	if userID == uuid.Nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	friends, err := c.service.GetFriends(userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	ctx.JSON(http.StatusOK, friends)
+}
+
+func (c *Controller) GetPendingRequests(ctx *gin.Context) {
+	userID := getUserID(ctx)
+	if userID == uuid.Nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	requests, err := c.service.GetPendingRequests(userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	ctx.JSON(http.StatusOK, requests)
+}
+
+func (c *Controller) GetSentRequests(ctx *gin.Context) {
+	userID := getUserID(ctx)
+	if userID == uuid.Nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	requests, err := c.service.GetSentRequests(userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	ctx.JSON(http.StatusOK, requests)
+}
+
+func (c *Controller) SendFriendRequest(ctx *gin.Context) {
+	userID := getUserID(ctx)
+	if userID == uuid.Nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var req SendFriendRequestRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	friendID, err := uuid.Parse(req.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid user_id"})
+		return
+	}
+
+	request, err := c.service.SendFriendRequest(userID, friendID)
+	if err != nil {
+		handleError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusCreated, request)
+}
+
+func (c *Controller) AcceptFriendRequest(ctx *gin.Context) {
+	userID := getUserID(ctx)
+	if userID == uuid.Nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	requestID, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	if err := c.service.AcceptFriendRequest(userID, requestID); err != nil {
+		handleError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "friend request accepted"})
+}
+
+func (c *Controller) RejectFriendRequest(ctx *gin.Context) {
+	userID := getUserID(ctx)
+	if userID == uuid.Nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	requestID, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	if err := c.service.RejectFriendRequest(userID, requestID); err != nil {
+		handleError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "friend request rejected"})
+}
+
+func (c *Controller) RemoveFriend(ctx *gin.Context) {
+	userID := getUserID(ctx)
+	if userID == uuid.Nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	friendID, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	if err := c.service.RemoveFriend(userID, friendID); err != nil {
+		handleError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "friend removed"})
 }

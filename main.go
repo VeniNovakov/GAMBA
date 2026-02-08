@@ -13,7 +13,9 @@ import (
 	"gamba/user"
 	"log"
 	"os"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -22,6 +24,7 @@ import (
 
 func constructDsn() string {
 	err := godotenv.Load()
+
 	if err != nil {
 		log.Println(".env file not found, using system environment variables")
 	}
@@ -46,7 +49,13 @@ func main() {
 	}
 
 	r := gin.Default()
-
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	// Hub for WebSocket
 	hub := chat.NewHub()
 	go hub.Run()
@@ -94,7 +103,7 @@ func main() {
 	}
 
 	ws := r.Group("/ws")
-	ws.Use(auth.Auth(authService))
+	ws.Use(auth.AuthWebsocket(authService))
 
 	chatController.RegisterWebSocket(ws)
 

@@ -28,3 +28,17 @@ type UserFilter struct {
 	Limit    int     `form:"limit,default=20"`
 	Offset   int     `form:"offset,default=0"`
 }
+
+type SendFriendRequestRequest struct {
+	UserID string `json:"user_id" binding:"required,uuid"`
+}
+
+type FriendResponse struct {
+	ID        uuid.UUID     `json:"id"`
+	UserID    uuid.UUID     `json:"user_id"`
+	FriendID  uuid.UUID     `json:"friend_id"`
+	Status    string        `json:"status"`
+	User      *UserResponse `json:"user,omitempty"`
+	Friend    *UserResponse `json:"friend,omitempty"`
+	CreatedAt string        `json:"created_at"`
+}

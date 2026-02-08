@@ -206,15 +206,7 @@ func (c *Controller) MarkMessageAsRead(ctx *gin.Context) {
 }
 
 func (c *Controller) HandleWebSocket(ctx *gin.Context) {
-	// Get user ID from query param or auth header
-	userIDStr := ctx.Query("user_id")
-	// In production, use proper auth: userID := getUserIDFromToken(ctx)
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
@@ -223,7 +215,7 @@ func (c *Controller) HandleWebSocket(ctx *gin.Context) {
 
 	client := &Client{
 		ID:     uuid.New(),
-		UserID: userID,
+		UserID: user.UserID,
 		Conn:   conn,
 		Send:   make(chan []byte, 256),
 		Hub:    c.hub,

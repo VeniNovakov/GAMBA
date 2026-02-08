@@ -18,7 +18,8 @@ env "local" {
 
 env "neon" {
   src = data.external_schema.gorm.url
-  url = "postgresql://<user>:<password>@<host>/<db>?sslmode=require&channel_binding=require"
+  url = "postgresql://neondb_owner:npg_R3VTJkLUd8bj@ep-steep-voice-a9cau05t-pooler.gwc.azure.neon.tech/gamba_dev2?sslmode=require&channel_binding=require"
+
   migration {
     dir = "file://migrations"
   }

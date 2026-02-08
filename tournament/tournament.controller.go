@@ -1,6 +1,7 @@
 package tournament
 
 import (
+	"gamba/auth"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -119,11 +120,7 @@ func (c *Controller) Delete(ctx *gin.Context) {
 }
 
 func (c *Controller) Join(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
 	tournamentID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -132,7 +129,7 @@ func (c *Controller) Join(ctx *gin.Context) {
 	}
 
 	req := JoinRequest{TournamentID: tournamentID}
-	participant, err := c.service.Join(userID, &req)
+	participant, err := c.service.Join(user.UserID, &req)
 	if err != nil {
 		handleError(ctx, err)
 		return
@@ -141,11 +138,7 @@ func (c *Controller) Join(ctx *gin.Context) {
 }
 
 func (c *Controller) Leave(ctx *gin.Context) {
-	userID := getUserID(ctx)
-	if userID == uuid.Nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
 	tournamentID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -153,7 +146,7 @@ func (c *Controller) Leave(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.service.Leave(userID, tournamentID); err != nil {
+	if err := c.service.Leave(user.UserID, tournamentID); err != nil {
 		handleError(ctx, err)
 		return
 	}
@@ -209,15 +202,6 @@ func (c *Controller) EndTournament(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "tournament ended"})
-}
-
-func getUserID(ctx *gin.Context) uuid.UUID {
-	userID, exists := ctx.Get("user_id")
-	if !exists {
-		return uuid.Nil
-	}
-	uid, _ := userID.(uuid.UUID)
-	return uid
 }
 
 func handleError(ctx *gin.Context, err error) {

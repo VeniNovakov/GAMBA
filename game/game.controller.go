@@ -1,6 +1,7 @@
 package game
 
 import (
+	"gamba/auth"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,9 +23,9 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 }
 
 func (c *Controller) RegisterAdminRoutes(r *gin.RouterGroup) {
-	r.POST("/games", c.Create)       // admin only
-	r.PUT("/games/:id", c.Update)    // admin only
-	r.DELETE("/games/:id", c.Delete) // admin only
+	r.POST("/games", c.Create)
+	r.PUT("/games/:id", c.Update)
+	r.DELETE("/games/:id", c.Delete)
 }
 
 func (c *Controller) GetAll(ctx *gin.Context) {
@@ -102,11 +103,7 @@ func (c *Controller) Delete(ctx *gin.Context) {
 }
 
 func (c *Controller) Play(ctx *gin.Context) {
-	userID, exists := ctx.Get("user_id")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
+	user := auth.GetClaims(ctx)
 
 	var req PlayRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -114,7 +111,7 @@ func (c *Controller) Play(ctx *gin.Context) {
 		return
 	}
 
-	result, err := c.service.Play(userID.(uuid.UUID), &req)
+	result, err := c.service.Play(user.UserID, &req)
 	if err != nil {
 		handleError(ctx, err)
 		return
