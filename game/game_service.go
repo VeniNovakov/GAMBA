@@ -2,6 +2,7 @@ package game
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -246,8 +247,40 @@ func (s *Service) Play(userID uuid.UUID, req *PlayRequest) (*PlayResponse, error
 		return nil, err
 	}
 
+	// If the player won, update tournament scores (if participating in any active tournaments)
+	if response.Won && response.Payout > 0 {
+		// This is done outside the transaction so it doesn't block the game play
+		s.updateTournamentScores(userID, game.ID, response.Payout)
+	}
+
 	response.NewBalance = newBalance
 	return response, nil
+}
+
+// updateTournamentScores adds payout as points to active tournament participants
+func (s *Service) updateTournamentScores(userID uuid.UUID, gameID uuid.UUID, payout float64) {
+	now := time.Now()
+
+	// Find all active tournaments for this game
+	var tournaments []models.Tournament
+	if err := s.db.Where(
+		"game_id = ? AND status = ? AND starts_at <= ? AND ends_at >= ?",
+		gameID,
+		models.TournamentStatusInProgress,
+		now,
+		now,
+	).Find(&tournaments).Error; err != nil {
+		// Log error but don't fail
+		return
+	}
+
+	// Update scores for tournaments where user is a participant
+	for _, tournament := range tournaments {
+		s.db.Model(&models.TournamentParticipant{}).
+			Where("tournament_id = ? AND user_id = ?", tournament.ID, userID).
+			Update("score", gorm.Expr("score + ?", payout))
+		fmt.Println(payout)
+	}
 }
 
 // playSlots handles slot machine game logic
@@ -277,13 +310,13 @@ func (s *Service) playDice(betAmount float64) *PlayResponse {
 		rand.Intn(6) + 1,
 		rand.Intn(6) + 1,
 	}
-	
+
 	total := dice[0] + dice[1]
-	
+
 	// Winning conditions and payouts
 	won := false
 	multiplier := 0.0
-	
+
 	// Lucky 7 - highest payout
 	if total == 7 {
 		won = true
@@ -298,7 +331,7 @@ func (s *Service) playDice(betAmount float64) *PlayResponse {
 		won = true
 		multiplier = 1.5
 	}
-	
+
 	payout := 0.0
 	if won {
 		payout = betAmount * multiplier
